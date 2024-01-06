@@ -43,7 +43,7 @@ jobs:
       - name: Configure GKE cluster access
         uses: 'google-github-actions/get-gke-credentials@v2'
         with:
-          cluster_name: 'autopilot-cluster-1'
+          cluster_name: 'autopilot-cluster-2'
           location: 'us-east1'
 
       - name: Deploy to GKE
