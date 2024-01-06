@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,7 +29,7 @@ public class WorkerService {
     private final PubSubTemplate pubSubTemplate;
 
     private final AtomicInteger currentlyProcessing = new AtomicInteger(0);
-    private final Map<String, AcknowledgeablePubsubMessage> currentlyProcessingMessages = new HashMap<>();
+    private final Map<String, AcknowledgeablePubsubMessage> currentlyProcessingMessages = new ConcurrentHashMap<>();
 
     @Scheduled(cron = "${worker.pullCron}")
     public void pullAndProcessMonitorTaskMessages() {
