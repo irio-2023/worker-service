@@ -43,8 +43,8 @@ jobs:
       - name: Configure GKE cluster access
         uses: 'google-github-actions/get-gke-credentials@v2'
         with:
-          cluster_name: ${{ secrets.GKE_CLUSTER }}
-          location: ${{ secrets.GKE_LOCATION }}
+          cluster_name: ${{ vars.GKE_CLUSTER }}
+          location: ${{ vars.GKE_LOCATION }}
 
       - name: Deploy to GKE
         run: kubectl apply -f .k8s/deployment.yaml
