@@ -6,7 +6,7 @@ spec:
   selector:
     matchLabels:
       app: worker-service
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       labels:
@@ -29,5 +29,3 @@ spec:
             items:
               - key: sa_json
                 path: sa_credentials.json
-
-
