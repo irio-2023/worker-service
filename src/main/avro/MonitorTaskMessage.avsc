@@ -1,0 +1,27 @@
+{
+  "type": "record",
+  "name": "MonitorTaskMessage",
+  "namespace": "pl.mimuw.evt.schemas",
+  "doc": "Monitor request message sent to the worker service.",
+  "fields": [
+    {
+      "name": "jobId",
+      "type": "string"
+    },
+    {
+      "name": "serviceUrl",
+      "type": {
+        "type": "string",
+        "logicalType": "url"
+      }
+    },
+    {
+      "name": "pollFrequencySecs",
+      "type": "int"
+    },
+    {
+      "name": "taskDeadlineTimestampSecs",
+      "type": "int"
+    }
+  ]
+}
