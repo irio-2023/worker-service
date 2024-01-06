@@ -32,6 +32,7 @@ jobs:
           tags: latest
 
   deploy:
+    if: github.ref == 'refs/heads/master'
     needs: build-and-test
     runs-on: ubuntu-latest
     steps:
