@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-service
+spec:
+  selector:
+    matchLabels:
+      app: worker-service
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: worker-service
+    spec:
+      containers:
+        - name: worker-service
+          image: xvisox/worker-service:latest
+          volumeMounts:
+            - name: service-account-credentials-volume
+              mountPath: /etc/gcp
+              readOnly: true
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /etc/gcp/sa_credentials.json
+      volumes:
+        - name: service-account-credentials-volume
+          secret:
+            secretName: my-data-service-account-credentials
+            items:
+              - key: sa_json
+                path: sa_credentials.json
+
+
