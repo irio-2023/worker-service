@@ -33,11 +33,13 @@ public class WorkerService {
     @Scheduled(cron = "${worker.pullCron}")
     public void pullAndProcessMonitorTaskMessages() {
         log.info("Pulling messages from task queue, time: {}", currentDate());
-        pubSubTemplate.pullAndConvert(
+        final var messages = pubSubTemplate.pullAndConvert(
                 workerConfiguration.getSubscriptionId(),
-                workerConfiguration.getMaxTasksPerPod(),
+                workerConfiguration.getMaxTasksPerPod() - currentlyProcessing.get(),
                 true, MonitorTaskMessage.class
-        ).forEach(message -> executorService.submit(() -> processMessage(message)));
+        );
+        log.info("Pulled {} messages from task queue", messages.size());
+        messages.forEach(message -> executorService.submit(() -> processMessage(message)));
     }
 
     @Scheduled(cron = "${worker.extendAckCron}")
@@ -47,7 +49,7 @@ public class WorkerService {
             try {
                 message.modifyAckDeadline(workerConfiguration.getAckDeadlineSecs());
             } catch (Exception e) {
-                log.error("Error extending ack deadline for message: {}", message, e);
+                log.error("Error extending ack deadline for message: {}", message.getAckId(), e);
             }
         });
     }
@@ -82,8 +84,8 @@ public class WorkerService {
     }
 
     private String currentDate() {
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        final LocalDateTime now = LocalDateTime.now();
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return now.format(formatter);
     }
 }

@@ -6,8 +6,6 @@ name: Maven Package
 on:
   push:
     branches: [ '**' ]
-  pull_request:
-    branches: [ master, develop ]
 
 jobs:
   build:
