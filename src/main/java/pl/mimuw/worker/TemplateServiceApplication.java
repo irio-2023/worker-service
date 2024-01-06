@@ -1,4 +1,4 @@
-package pl.mimuw.template;
+package pl.mimuw.worker;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

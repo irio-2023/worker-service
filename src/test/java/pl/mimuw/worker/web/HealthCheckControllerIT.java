@@ -1,8 +1,8 @@
-package pl.mimuw.template.web;
+package pl.mimuw.worker.web;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import pl.mimuw.template.AbstractIT;
+import pl.mimuw.worker.AbstractIT;
 
 import static io.restassured.RestAssured.given;
 

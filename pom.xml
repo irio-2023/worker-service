@@ -11,10 +11,10 @@
     </parent>
 
     <groupId>pl.mimuw</groupId>
-    <artifactId>template-service</artifactId>
+    <artifactId>worker-service</artifactId>
     <version>${revision}</version>
-    <name>template-service</name>
-    <description>Template service for the project</description>
+    <name>worker-service</name>
+    <description>Worker service for the project</description>
 
     <properties>
         <java.version>17</java.version>
@@ -133,7 +133,7 @@
                 </configuration>
             </plugin>
         </plugins>
-        <finalName>template-service</finalName>
+        <finalName>worker-service</finalName>
     </build>
 
 </project>
