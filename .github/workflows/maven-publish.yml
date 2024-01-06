@@ -45,8 +45,8 @@ jobs:
       - name: Configure GKE cluster access
         uses: 'google-github-actions/get-gke-credentials@v2'
         with:
-          cluster_name: 'irio-cluster'
-          location: 'us-east1-b'
+          cluster_name: 'autopilot-cluster-1'
+          location: 'us-east1'
 
       - name: Deploy to GKE
         run: kubectl apply -f deployment.yaml
