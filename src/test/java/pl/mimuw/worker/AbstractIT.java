@@ -9,7 +9,7 @@ import org.springframework.test.context.ActiveProfiles;
 @DirtiesContext
 @AutoConfigureObservability
 @ActiveProfiles("it-test")
-@SpringBootTest(classes = TemplateServiceApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = WorkerServiceApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class AbstractIT {
 
     @LocalServerPort
