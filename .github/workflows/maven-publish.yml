@@ -47,4 +47,11 @@ jobs:
           location: 'us-east1'
 
       - name: Deploy to GKE
-        run: kubectl apply -f deployment.yaml
+        run: kubectl apply -f .k8s/deployment.yaml
+
+      - name: Deploy HPA to GKE
+        run: kubectl apply -f .k8s/horizontal-scaling.yaml
+
+      - name: Deploy VPA to GKE
+        run: kubectl apply -f .k8s/vertical-scaling.yaml
+
