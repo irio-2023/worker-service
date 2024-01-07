@@ -13,7 +13,6 @@ import pl.mimuw.evt.schemas.MonitorTaskMessage;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -27,6 +26,7 @@ public class WorkerService {
     private final WorkerConfiguration workerConfiguration;
     private final ExecutorService executorService;
     private final PubSubTemplate pubSubTemplate;
+    private final MonitorService monitorService;
 
     private final AtomicInteger currentlyProcessing = new AtomicInteger(0);
     private final Map<String, AcknowledgeablePubsubMessage> currentlyProcessingMessages = new ConcurrentHashMap<>();
@@ -78,8 +78,7 @@ public class WorkerService {
              currentTimeSecs < monitorTask.getTaskDeadlineTimestampSecs();
              currentTimeSecs = System.currentTimeMillis() / 1000L) {
             log.info("Pinging service: {}, time: {}", monitorTask.getServiceUrl(), currentDate());
-            // TODO: ping host
-            // TODO: save result to db
+            monitorService.pingHostAndSaveResult(monitorTask.getJobId().toString(), monitorTask.getServiceUrl().toString());
             Thread.sleep(monitorTask.getPollFrequencySecs() * 1000L);
         }
     }
