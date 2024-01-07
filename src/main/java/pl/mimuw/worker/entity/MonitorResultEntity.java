@@ -26,5 +26,5 @@ public class MonitorResultEntity {
 
     private Date timestamp;
 
-    private Integer statusCode;
+    private MonitorResult result;
 }

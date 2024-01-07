@@ -42,7 +42,6 @@ public abstract class AbstractIT {
             DockerImageName.parse("mongo:5.0.2")
     );
 
-
     @DynamicPropertySource
     static void emulatorProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.cloud.gcp.pubsub.emulator-host", pubSubEmulator::getEmulatorEndpoint);
