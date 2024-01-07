@@ -69,7 +69,7 @@ public class MonitorServiceIT extends AbstractIT {
 
         // then
         monitorResultRepository.findByJobId(jobId).ifPresentOrElse(monitorResultEntity -> Assertions.assertEquals(
-                monitorService.resultFromStatusCode(HttpStatusCode.valueOf(statusCode)),
+                MonitorResult.fromStatusCode(HttpStatusCode.valueOf(statusCode)),
                 monitorResultEntity.getResult()), Assertions::fail);
     }
 
@@ -89,7 +89,7 @@ public class MonitorServiceIT extends AbstractIT {
 
         // then
         monitorResultRepository.findByJobId(jobId).ifPresentOrElse(monitorResultEntity -> Assertions.assertEquals(
-                monitorService.resultFromStatusCode(HttpStatusCode.valueOf(200)),
+                MonitorResult.fromStatusCode(HttpStatusCode.valueOf(200)),
                 monitorResultEntity.getResult()), Assertions::fail);
     }
 

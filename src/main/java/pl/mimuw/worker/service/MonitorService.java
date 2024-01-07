@@ -2,7 +2,6 @@ package pl.mimuw.worker.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
@@ -34,26 +33,16 @@ public class MonitorService {
         monitorResultRepository.save(monitorResultEntity);
     }
 
-    public MonitorResult pingHost(final String url) {
-        MonitorResult result = webClient
+    private MonitorResult pingHost(final String url) {
+        final MonitorResult result = webClient
                 .get()
                 .uri(url)
-                .exchangeToMono(clientResponse -> Mono.just(resultFromStatusCode(clientResponse.statusCode())))
+                .exchangeToMono(clientResponse -> Mono.just(MonitorResult.fromStatusCode(clientResponse.statusCode())))
                 .timeout(Duration.ofSeconds(5))
                 .onErrorReturn(TimeoutException.class, MonitorResult.ERROR_TIMEOUT)
                 .onErrorReturn(WebClientException.class, MonitorResult.ERROR_DNS)
                 .onErrorReturn(Exception.class, MonitorResult.ERROR_NO_RESPONSE)
                 .block();
         return Objects.requireNonNullElse(result, MonitorResult.ERROR_NO_RESPONSE);
-    }
-
-    public MonitorResult resultFromStatusCode(final HttpStatusCode statusCode) {
-        if (statusCode.is2xxSuccessful() || statusCode.is3xxRedirection()) {
-            return MonitorResult.SUCCESS;
-        } else if (statusCode.is4xxClientError() || statusCode.is5xxServerError()) {
-            return MonitorResult.FAILURE;
-        } else {
-            return MonitorResult.ERROR_NO_RESPONSE;
-        }
     }
 }
