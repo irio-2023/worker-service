@@ -11,12 +11,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pl.mimuw.evt.schemas.MonitorTaskMessage;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static pl.mimuw.worker.utils.TimeUtils.currentDate;
+import static pl.mimuw.worker.utils.TimeUtils.currentTimeSecs;
 
 @Slf4j
 @Service
@@ -34,11 +36,7 @@ public class WorkerService {
     @Scheduled(cron = "${worker.pullCron}")
     public void pullAndProcessMonitorTaskMessages() {
         log.info("Pulling messages from task queue, time: {}", currentDate());
-        final var messages = pubSubTemplate.pullAndConvert(
-                workerConfiguration.getSubscriptionId(),
-                workerConfiguration.getMaxTasksPerPod() - currentlyProcessing.get(),
-                true, MonitorTaskMessage.class
-        );
+        final var messages = pullMessages();
         log.info("Pulled {} messages from task queue", messages.size());
         messages.forEach(message -> executorService.submit(() -> processMessage(message)));
     }
@@ -53,6 +51,14 @@ public class WorkerService {
                 log.error("Error extending ack deadline for message: {}", message.getAckId(), e);
             }
         });
+    }
+
+    public List<ConvertedAcknowledgeablePubsubMessage<MonitorTaskMessage>> pullMessages() {
+        return pubSubTemplate.pullAndConvert(
+                workerConfiguration.getSubscriptionId(),
+                workerConfiguration.getMaxTasksPerPod() - currentlyProcessing.get(),
+                true, MonitorTaskMessage.class
+        );
     }
 
     private void processMessage(final ConvertedAcknowledgeablePubsubMessage<MonitorTaskMessage> message) {
@@ -73,19 +79,13 @@ public class WorkerService {
     }
 
     @SneakyThrows
-    public void monitorService(final MonitorTaskMessage monitorTask) {
-        for (long currentTimeSecs = System.currentTimeMillis() / 1000L;
+    private void monitorService(final MonitorTaskMessage monitorTask) {
+        for (int currentTimeSecs = currentTimeSecs();
              currentTimeSecs < monitorTask.getTaskDeadlineTimestampSecs();
-             currentTimeSecs = System.currentTimeMillis() / 1000L) {
+             currentTimeSecs = currentTimeSecs()) {
             log.info("Pinging service: {}, time: {}", monitorTask.getServiceUrl(), currentDate());
             monitorService.pingHostAndSaveResult(monitorTask.getJobId().toString(), monitorTask.getServiceUrl().toString());
             Thread.sleep(monitorTask.getPollFrequencySecs() * 1000L);
         }
-    }
-
-    private String currentDate() {
-        final LocalDateTime now = LocalDateTime.now();
-        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return now.format(formatter);
     }
 }

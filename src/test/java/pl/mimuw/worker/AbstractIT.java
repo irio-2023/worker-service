@@ -33,12 +33,12 @@ public abstract class AbstractIT {
     }
 
     @Container
-    static final PubSubEmulatorContainer pubSubEmulator = new PubSubEmulatorContainer(
+    protected static final PubSubEmulatorContainer pubSubEmulator = new PubSubEmulatorContainer(
             DockerImageName.parse("gcr.io/google.com/cloudsdktool/google-cloud-cli:441.0.0-emulators")
     );
 
     @Container
-    static final MongoDBContainer mongoDBContainer = new MongoDBContainer(
+    protected static final MongoDBContainer mongoDBContainer = new MongoDBContainer(
             DockerImageName.parse("mongo:5.0.2")
     );
 
