@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static pl.mimuw.worker.utils.TimeUtils.currentDate;
 import static pl.mimuw.worker.utils.TimeUtils.currentTimeSecs;
+import static pl.mimuw.worker.utils.TimeUtils.currentTimeSecsPlus;
 
 @Slf4j
 @Service
@@ -85,6 +86,7 @@ public class WorkerService {
              currentTimeSecs = currentTimeSecs()) {
             log.info("Pinging service: {}, time: {}", monitorTask.getServiceUrl(), currentDate());
             monitorService.pingHostAndSaveResult(monitorTask.getJobId().toString(), monitorTask.getServiceUrl().toString());
+            if (currentTimeSecsPlus(monitorTask.getPollFrequencySecs()) > monitorTask.getTaskDeadlineTimestampSecs()) break;
             Thread.sleep(monitorTask.getPollFrequencySecs() * 1000L);
         }
     }

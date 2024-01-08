@@ -133,7 +133,10 @@ public class WorkerServiceIT extends AbstractIT {
         // given
         final var moreThanMaxTasks = workerConfiguration.getMaxTasksPerPod() + 5;
         for (int i = 0; i < moreThanMaxTasks; i++) {
-            final var message = createMonitorTaskMessageBuilder().build();
+            final var message = createMonitorTaskMessageBuilder()
+                    .setPollFrequencySecs(100)
+                    .setTaskDeadlineTimestampSecs(currentTimeSecsPlus(3))
+                    .build();
             publisherTemplate.publish(TOPIC_ID, message).get();
         }
 
