@@ -103,7 +103,7 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
   @Override
   public org.apache.avro.specific.SpecificData getSpecificData() { return MODEL$; }
 
-    @JsonIgnore
+  @JsonIgnore
   @Override
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
 

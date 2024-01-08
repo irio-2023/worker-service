@@ -10,8 +10,8 @@ public enum MonitorResult {
     SUCCESS("SUC"),
     FAILURE("FAIL"),
     ERROR_TIMEOUT("ERR_TO"),
-    ERROR_DNS("ERR-DN"),
-    ERROR_NO_RESPONSE("ERR-NR");
+    ERROR_DNS("ERR_DN"),
+    ERROR_NO_RESPONSE("ERR_NR");
 
     private final String code;
 
