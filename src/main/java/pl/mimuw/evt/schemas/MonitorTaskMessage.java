@@ -5,12 +5,12 @@
  */
 package pl.mimuw.evt.schemas;
 
-import org.apache.avro.generic.GenericArray;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.avro.message.BinaryMessageDecoder;
+import org.apache.avro.message.BinaryMessageEncoder;
+import org.apache.avro.message.SchemaStore;
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.util.Utf8;
-import org.apache.avro.message.BinaryMessageEncoder;
-import org.apache.avro.message.BinaryMessageDecoder;
-import org.apache.avro.message.SchemaStore;
 
 /** Monitor request message sent to the worker service. */
 @org.apache.avro.specific.AvroGenerated
@@ -103,6 +103,7 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
   @Override
   public org.apache.avro.specific.SpecificData getSpecificData() { return MODEL$; }
 
+  @JsonIgnore
   @Override
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
 

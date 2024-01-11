@@ -9,9 +9,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Getter
 @Setter
@@ -32,8 +33,13 @@ public class WorkerConfiguration {
     }
 
     @Bean
-    public ExecutorService executorService() {
-        return Executors.newFixedThreadPool(maxTasksPerPod);
+    public ScheduledExecutorService scheduledExecutorService() {
+        return Executors.newScheduledThreadPool(maxTasksPerPod);
+    }
+
+    @Bean
+    public WebClient webClient() {
+        return WebClient.create();
     }
 }
 
