@@ -21,9 +21,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.mimuw.evt.schemas.MonitorTaskMessage;
 import pl.mimuw.worker.AbstractIT;
+import pl.mimuw.worker.entity.MonitorResult;
 import pl.mimuw.worker.entity.MonitorResultEntity;
 import pl.mimuw.worker.repository.MonitorResultRepository;
 
+import java.util.Date;
 import java.util.UUID;
 
 import static org.awaitility.Awaitility.await;
@@ -80,8 +82,9 @@ public class WorkerServiceIT extends AbstractIT {
 
     @AfterEach
     void teardown() {
-        await().until(() -> subscriberTemplate.pullAndAck(SUBSCRIPTION_ID, 1000, true), hasSize(0));
         monitorResultRepository.deleteAll();
+        workerService.gracefullyShutdown();
+        await().until(() -> subscriberTemplate.pullAndAck(SUBSCRIPTION_ID, 1000, true), hasSize(0));
     }
 
     @Test
@@ -110,21 +113,22 @@ public class WorkerServiceIT extends AbstractIT {
     @SneakyThrows
     void workerServiceProcessesTaskMessagesTest() {
         // given
-        final var pollTimes = 4;
-        final var pollFrequencySecs = 1;
+        final var pollTimes = 3;
+        final var pollFrequencySecs = 2;
+        final var neededTimeSecs = (pollTimes - 1) * pollFrequencySecs + 1;
         final var message = createMonitorTaskMessageBuilder()
                 .setPollFrequencySecs(pollFrequencySecs)
-                .setTaskDeadlineTimestampSecs(currentTimeSecsPlus(pollTimes * pollFrequencySecs))
+                .setTaskDeadlineTimestampSecs(currentTimeSecsPlus(neededTimeSecs))
                 .build();
         publisherTemplate.publish(TOPIC_ID, message).get();
 
         // when
         workerService.pullAndProcessMonitorTaskMessages();
-        Thread.sleep(pollTimes * pollFrequencySecs * 1000);
+        Thread.sleep(neededTimeSecs * 1000);
 
         // then
         final var results = monitorResultRepository.findAll();
-        Assertions.assertTrue(results.size() == pollTimes || results.size() == pollTimes - 1);
+        Assertions.assertEquals(pollTimes, results.size());
     }
 
     @Test
@@ -172,8 +176,71 @@ public class WorkerServiceIT extends AbstractIT {
                 Assertions.assertTrue(isQueueEmpty());
             }
         }
-        Thread.sleep(workerConfiguration.getAckDeadlineSecs() * 1000);
-        Assertions.assertTrue(isQueueEmpty());
+
+        // wait for the message to get back to the queue
+        Thread.sleep(1500);
+        // DISCLAIMER: this is not acceptable behavior for production code, because
+        // we would duplicate the jobs across the workers - this is only for testing purposes
+        Assertions.assertFalse(isQueueEmpty());
+    }
+
+    @Test
+    @SneakyThrows
+    void workerServiceDontProcessExpiredMessagesTest() {
+        // given
+        final var message = createMonitorTaskMessageBuilder()
+                .setTaskDeadlineTimestampSecs(currentTimeSecsPlus(-1))
+                .build();
+        publisherTemplate.publish(TOPIC_ID, message).get();
+
+        // when
+        workerService.pullAndProcessMonitorTaskMessages();
+        Thread.sleep(1000);
+
+        // then
+        Assertions.assertTrue(monitorResultRepository.findAll().isEmpty());
+    }
+
+    @Test
+    @SneakyThrows
+    void workerServiceStartsMessageProcessingWithProperDelayTest() {
+        // given
+        final var jobId = UUID.randomUUID();
+
+        final var olderMockedResult = new MonitorResultEntity();
+        olderMockedResult.setId(UUID.randomUUID());
+        olderMockedResult.setJobId(jobId);
+        olderMockedResult.setResult(MonitorResult.SUCCESS);
+        olderMockedResult.setTimestamp(new Date());
+        monitorResultRepository.save(olderMockedResult);
+
+        final var mockedResult = new MonitorResultEntity();
+        mockedResult.setId(UUID.randomUUID());
+        mockedResult.setJobId(jobId);
+        mockedResult.setResult(MonitorResult.SUCCESS);
+        mockedResult.setTimestamp(new Date());
+        monitorResultRepository.save(mockedResult);
+
+        final var pollFrequencySecs = 3;
+        final var message = createMonitorTaskMessageBuilder()
+                .setJobId(jobId.toString())
+                .setPollFrequencySecs(pollFrequencySecs)
+                .setTaskDeadlineTimestampSecs(currentTimeSecsPlus(pollFrequencySecs + 1))
+                .build();
+        publisherTemplate.publish(TOPIC_ID, message).get();
+
+        // when
+        workerService.pullAndProcessMonitorTaskMessages();
+        Thread.sleep((pollFrequencySecs + 1) * 1000);
+
+        // then
+        final var resultOpt = monitorResultRepository.findTopByJobIdOrderByTimestampDesc(jobId);
+        Assertions.assertTrue(resultOpt.isPresent());
+
+        final var result = resultOpt.get();
+        Assertions.assertNotEquals(olderMockedResult.getId(), result.getId());
+        Assertions.assertNotEquals(mockedResult.getId(), result.getId());
+        Assertions.assertTrue(pollFrequencySecs * 1000 <= (result.getTimestamp().getTime() - mockedResult.getTimestamp().getTime()));
     }
 
     private MonitorTaskMessage.Builder createMonitorTaskMessageBuilder() {
@@ -185,6 +252,6 @@ public class WorkerServiceIT extends AbstractIT {
     }
 
     private boolean isQueueEmpty() {
-        return subscriberTemplate.pull(SUBSCRIPTION_ID, 1000, true).isEmpty();
+        return subscriberTemplate.pullAndAck(SUBSCRIPTION_ID, 1000, true).isEmpty();
     }
 }

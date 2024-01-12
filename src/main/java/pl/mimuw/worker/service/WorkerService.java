@@ -3,6 +3,7 @@ package pl.mimuw.worker.service;
 import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import com.google.cloud.spring.pubsub.support.AcknowledgeablePubsubMessage;
 import com.google.cloud.spring.pubsub.support.converter.ConvertedAcknowledgeablePubsubMessage;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,12 +13,14 @@ import pl.mimuw.evt.schemas.MonitorTaskMessage;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static pl.mimuw.worker.utils.TimeUtils.currentDate;
+import static pl.mimuw.worker.utils.TimeUtils.currentTimeSecs;
 import static pl.mimuw.worker.utils.TimeUtils.currentTimeSecsPlus;
 
 @Slf4j
@@ -26,6 +29,7 @@ import static pl.mimuw.worker.utils.TimeUtils.currentTimeSecsPlus;
 public class WorkerService {
 
     private static final Long NO_INITIAL_DELAY = 0L;
+    private static final Boolean MAY_INTERRUPT_IF_RUNNING = false;
 
     private final WorkerConfiguration workerConfiguration;
     private final ScheduledExecutorService scheduledExecutorService;
@@ -44,10 +48,11 @@ public class WorkerService {
         messages.forEach(message -> {
             log.info("Starting processing message: {}", message.getAckId());
             message.modifyAckDeadline(workerConfiguration.getAckDeadlineSecs());
+            final var payload = message.getPayload();
             final var future = scheduledExecutorService.scheduleAtFixedRate(
-                    () -> processMessage(message.getAckId(), message.getPayload()),
-                    NO_INITIAL_DELAY,
-                    message.getPayload().getPollFrequencySecs(),
+                    () -> processMessage(message.getAckId(), payload),
+                    getInitialDelayForJob(payload.getJobId().toString(), payload.getPollFrequencySecs()),
+                    payload.getPollFrequencySecs(),
                     TimeUnit.SECONDS);
 
             messageAcks.put(message.getAckId(), message);
@@ -63,6 +68,13 @@ public class WorkerService {
         );
     }
 
+    @PreDestroy
+    public void gracefullyShutdown() {
+        log.info("Shutting down worker service");
+        messageFutures.values().forEach(future -> future.cancel(MAY_INTERRUPT_IF_RUNNING));
+        messageAcks.values().forEach(message -> message.nack());
+    }
+
     public List<ConvertedAcknowledgeablePubsubMessage<MonitorTaskMessage>> pullMessages() {
         return pubSubTemplate.pullAndConvert(
                 workerConfiguration.getSubscriptionId(),
@@ -72,13 +84,33 @@ public class WorkerService {
     }
 
     private void processMessage(final String ackId, final MonitorTaskMessage monitorTask) {
+        if (currentTimeSecs() > monitorTask.getTaskDeadlineTimestampSecs()) {
+            stopMessageProcessing(ackId);
+            return;
+        }
+
         log.info("Pinging service: {}, time: {}", monitorTask.getServiceUrl(), currentDate());
         monitorService.pingHostAndSaveResult(monitorTask.getJobId().toString(), monitorTask.getServiceUrl().toString());
 
         if (currentTimeSecsPlus(monitorTask.getPollFrequencySecs()) > monitorTask.getTaskDeadlineTimestampSecs()) {
-            log.info("Task deadline exceeded, finishing processing message: {}", ackId);
-            messageAcks.remove(ackId).ack();
-            messageFutures.remove(ackId).cancel(false);
+            stopMessageProcessing(ackId);
         }
+    }
+
+    private long getInitialDelayForJob(final String jobId, final long pollFrequencySecs) {
+        return monitorService.getLatestMonitorResultByJobId(UUID.fromString(jobId))
+                .map(result -> calculateDelay(result.getTimestamp().getTime() / 1000L, pollFrequencySecs))
+                .orElse(NO_INITIAL_DELAY);
+    }
+
+    private long calculateDelay(final long lastPingTimestampSecs, final long pollFrequencySecs) {
+        final var delay = lastPingTimestampSecs + pollFrequencySecs - currentTimeSecs();
+        return delay > 0L ? delay : NO_INITIAL_DELAY;
+    }
+
+    private void stopMessageProcessing(final String ackId) {
+        log.info("Task deadline exceeded, finishing processing message: {}", ackId);
+        messageAcks.remove(ackId).ack();
+        messageFutures.remove(ackId).cancel(MAY_INTERRUPT_IF_RUNNING);
     }
 }

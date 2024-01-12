@@ -24,6 +24,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 public class MonitorServiceIT extends AbstractIT {
 
     @Autowired
+    private MonitorConfiguration monitorConfiguration;
+
+    @Autowired
     private MonitorService monitorService;
 
     @Autowired
@@ -81,7 +84,7 @@ public class MonitorServiceIT extends AbstractIT {
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"status\":\"OK\"}")
-                        .withFixedDelay(3500)));
+                        .withFixedDelay(monitorConfiguration.getPingTimeoutSecs() * 1000 - 500)));
 
         // when
         final UUID jobId = UUID.randomUUID();
@@ -101,7 +104,7 @@ public class MonitorServiceIT extends AbstractIT {
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"status\":\"OK\"}")
-                        .withFixedDelay(5500)));
+                        .withFixedDelay(monitorConfiguration.getPingTimeoutSecs() * 1000 + 500)));
 
         // when
         final UUID jobId = UUID.randomUUID();

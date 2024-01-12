@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
@@ -22,6 +23,7 @@ public class MonitorService {
 
     private final WebClient webClient;
     private final MonitorResultRepository monitorResultRepository;
+    private final MonitorConfiguration monitorConfiguration;
 
     public void pingHostAndSaveResult(final String jobId, final String url) {
         final var result = pingHost(url);
@@ -33,12 +35,16 @@ public class MonitorService {
         monitorResultRepository.save(monitorResultEntity);
     }
 
+    public Optional<MonitorResultEntity> getLatestMonitorResultByJobId(final UUID jobId) {
+        return monitorResultRepository.findTopByJobIdOrderByTimestampDesc(jobId);
+    }
+
     private MonitorResult pingHost(final String url) {
         final MonitorResult result = webClient
                 .get()
                 .uri(url)
                 .exchangeToMono(clientResponse -> Mono.just(MonitorResult.fromStatusCode(clientResponse.statusCode())))
-                .timeout(Duration.ofSeconds(5))
+                .timeout(Duration.ofSeconds(monitorConfiguration.getPingTimeoutSecs()))
                 .onErrorReturn(TimeoutException.class, MonitorResult.ERROR_TIMEOUT)
                 .onErrorReturn(WebClientException.class, MonitorResult.ERROR_DNS)
                 .onErrorReturn(Exception.class, MonitorResult.ERROR_NO_RESPONSE)

@@ -7,6 +7,11 @@ spec:
     matchLabels:
       app: worker-service
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 25%
   template:
     metadata:
       labels:
@@ -15,6 +20,22 @@ spec:
       containers:
         - name: worker-service
           image: xvisox/worker-service:latest
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          lifecycle:
+            preStop:
+              exec:
+                command: [ "sh", "-c", "sleep 10" ]
           volumeMounts:
             - name: service-account-credentials-volume
               mountPath: /etc/gcp
