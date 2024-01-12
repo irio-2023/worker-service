@@ -3,6 +3,7 @@ package pl.mimuw.worker.service;
 import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import com.google.cloud.spring.pubsub.support.AcknowledgeablePubsubMessage;
 import com.google.cloud.spring.pubsub.support.converter.ConvertedAcknowledgeablePubsubMessage;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,7 @@ public class WorkerService {
         );
     }
 
+    @PreDestroy
     public void gracefullyShutdown() {
         log.info("Shutting down worker service");
         messageFutures.values().forEach(future -> future.cancel(MAY_INTERRUPT_IF_RUNNING));
