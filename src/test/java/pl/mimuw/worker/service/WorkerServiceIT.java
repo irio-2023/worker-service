@@ -114,7 +114,7 @@ public class WorkerServiceIT extends AbstractIT {
         final var pollFrequencySecs = 1;
         final var message = createMonitorTaskMessageBuilder()
                 .setPollFrequencySecs(pollFrequencySecs)
-                .setTaskDeadlineTimestampSecs(currentTimeSecsPlus(pollTimes * pollFrequencySecs))
+                .setTaskDeadlineTimestampSecs(currentTimeSecsPlus((pollTimes - 1) * pollFrequencySecs))
                 .build();
         publisherTemplate.publish(TOPIC_ID, message).get();
 
@@ -124,7 +124,7 @@ public class WorkerServiceIT extends AbstractIT {
 
         // then
         final var results = monitorResultRepository.findAll();
-        Assertions.assertTrue(results.size() == pollTimes || results.size() == pollTimes - 1);
+        Assertions.assertEquals(pollTimes, results.size());
     }
 
     @Test
