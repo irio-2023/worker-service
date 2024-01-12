@@ -67,6 +67,12 @@ public class WorkerService {
         );
     }
 
+    public void gracefullyShutdown() {
+        log.info("Shutting down worker service");
+        messageFutures.values().forEach(future -> future.cancel(MAY_INTERRUPT_IF_RUNNING));
+        messageAcks.values().forEach(message -> message.nack());
+    }
+
     public List<ConvertedAcknowledgeablePubsubMessage<MonitorTaskMessage>> pullMessages() {
         return pubSubTemplate.pullAndConvert(
                 workerConfiguration.getSubscriptionId(),

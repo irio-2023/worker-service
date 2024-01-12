@@ -82,8 +82,9 @@ public class WorkerServiceIT extends AbstractIT {
 
     @AfterEach
     void teardown() {
-        await().until(() -> subscriberTemplate.pullAndAck(SUBSCRIPTION_ID, 1000, true), hasSize(0));
         monitorResultRepository.deleteAll();
+        workerService.gracefullyShutdown();
+        await().until(() -> subscriberTemplate.pullAndAck(SUBSCRIPTION_ID, 1000, true), hasSize(0));
     }
 
     @Test
