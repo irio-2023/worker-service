@@ -7,6 +7,11 @@ spec:
     matchLabels:
       app: worker-service
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 25%
   template:
     metadata:
       labels:
