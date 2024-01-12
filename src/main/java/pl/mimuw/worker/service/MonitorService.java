@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
@@ -31,6 +32,10 @@ public class MonitorService {
         monitorResultEntity.setResult(result);
         monitorResultEntity.setTimestamp(new Date());
         monitorResultRepository.save(monitorResultEntity);
+    }
+
+    public Optional<MonitorResultEntity> getLatestMonitorResultByJobId(final UUID jobId) {
+        return monitorResultRepository.findTopByJobIdOrderByTimestampDesc(jobId);
     }
 
     private MonitorResult pingHost(final String url) {

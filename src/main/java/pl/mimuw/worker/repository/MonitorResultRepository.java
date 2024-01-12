@@ -10,4 +10,5 @@ public interface MonitorResultRepository extends MongoRepository<MonitorResultEn
 
     Optional<MonitorResultEntity> findByJobId(UUID jobId);
 
+    Optional<MonitorResultEntity> findTopByJobIdOrderByTimestampDesc(UUID jobId);
 }

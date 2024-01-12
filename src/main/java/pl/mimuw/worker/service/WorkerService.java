@@ -12,12 +12,14 @@ import pl.mimuw.evt.schemas.MonitorTaskMessage;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static pl.mimuw.worker.utils.TimeUtils.currentDate;
+import static pl.mimuw.worker.utils.TimeUtils.currentTimeSecs;
 import static pl.mimuw.worker.utils.TimeUtils.currentTimeSecsPlus;
 
 @Slf4j
@@ -44,10 +46,11 @@ public class WorkerService {
         messages.forEach(message -> {
             log.info("Starting processing message: {}", message.getAckId());
             message.modifyAckDeadline(workerConfiguration.getAckDeadlineSecs());
+            final var payload = message.getPayload();
             final var future = scheduledExecutorService.scheduleAtFixedRate(
-                    () -> processMessage(message.getAckId(), message.getPayload()),
-                    NO_INITIAL_DELAY,
-                    message.getPayload().getPollFrequencySecs(),
+                    () -> processMessage(message.getAckId(), payload),
+                    getInitialDelayForJob(payload.getJobId().toString(), payload.getPollFrequencySecs()),
+                    payload.getPollFrequencySecs(),
                     TimeUnit.SECONDS);
 
             messageAcks.put(message.getAckId(), message);
@@ -80,5 +83,16 @@ public class WorkerService {
             messageAcks.remove(ackId).ack();
             messageFutures.remove(ackId).cancel(false);
         }
+    }
+
+    private long getInitialDelayForJob(final String jobId, final long pollFrequencySecs) {
+        return monitorService.getLatestMonitorResultByJobId(UUID.fromString(jobId))
+                .map(result -> calculateDelay(result.getTimestamp().toInstant().getEpochSecond(), pollFrequencySecs))
+                .orElse(NO_INITIAL_DELAY);
+    }
+
+    private long calculateDelay(final long lastPingTimestamp, final long pollFrequencySecs) {
+        final var delay = lastPingTimestamp + pollFrequencySecs - currentTimeSecs();
+        return delay > 0 ? delay : NO_INITIAL_DELAY;
     }
 }
