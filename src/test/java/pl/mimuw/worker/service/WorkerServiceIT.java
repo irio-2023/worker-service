@@ -240,9 +240,7 @@ public class WorkerServiceIT extends AbstractIT {
         final var result = resultOpt.get();
         Assertions.assertNotEquals(olderMockedResult.getId(), result.getId());
         Assertions.assertNotEquals(mockedResult.getId(), result.getId());
-        // not a perfect assertion, we can't be sure that the delay will be exactly 3 seconds,
-        // but it is highly likely in the test environment
-        Assertions.assertEquals(pollFrequencySecs, (result.getTimestamp().getTime() - mockedResult.getTimestamp().getTime()) / 1000);
+        Assertions.assertTrue(pollFrequencySecs * 1000 <= (result.getTimestamp().getTime() - mockedResult.getTimestamp().getTime()));
     }
 
     private MonitorTaskMessage.Builder createMonitorTaskMessageBuilder() {
