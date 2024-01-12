@@ -103,9 +103,9 @@ public class WorkerService {
                 .orElse(NO_INITIAL_DELAY);
     }
 
-    private long calculateDelay(final long lastPingTimestamp, final long pollFrequencySecs) {
-        final var delay = lastPingTimestamp + pollFrequencySecs - currentTimeSecs();
-        return delay > 0 ? delay : NO_INITIAL_DELAY;
+    private long calculateDelay(final long lastPingTimestampSecs, final long pollFrequencySecs) {
+        final var delay = lastPingTimestampSecs + pollFrequencySecs - currentTimeSecs();
+        return delay > 0L ? delay : NO_INITIAL_DELAY;
     }
 
     private void stopMessageProcessing(final String ackId) {

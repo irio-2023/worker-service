@@ -23,6 +23,7 @@ public class MonitorService {
 
     private final WebClient webClient;
     private final MonitorResultRepository monitorResultRepository;
+    private final MonitorConfiguration monitorConfiguration;
 
     public void pingHostAndSaveResult(final String jobId, final String url) {
         final var result = pingHost(url);
@@ -43,7 +44,7 @@ public class MonitorService {
                 .get()
                 .uri(url)
                 .exchangeToMono(clientResponse -> Mono.just(MonitorResult.fromStatusCode(clientResponse.statusCode())))
-                .timeout(Duration.ofSeconds(5))
+                .timeout(Duration.ofSeconds(monitorConfiguration.getPingTimeoutSecs()))
                 .onErrorReturn(TimeoutException.class, MonitorResult.ERROR_TIMEOUT)
                 .onErrorReturn(WebClientException.class, MonitorResult.ERROR_DNS)
                 .onErrorReturn(Exception.class, MonitorResult.ERROR_NO_RESPONSE)
