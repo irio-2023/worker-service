@@ -175,8 +175,11 @@ public class WorkerServiceIT extends AbstractIT {
             }
         }
 
-        Thread.sleep(workerConfiguration.getAckDeadlineSecs() * 1000);
-        Assertions.assertTrue(isQueueEmpty());
+        // wait for the message to get back to the queue
+        Thread.sleep(1500);
+        // DISCLAIMER: this is not acceptable behavior for production code, because
+        // we would duplicate the jobs across the workers - this is only for testing purposes
+        Assertions.assertFalse(isQueueEmpty());
     }
 
     @Test
@@ -237,6 +240,6 @@ public class WorkerServiceIT extends AbstractIT {
     }
 
     private boolean isQueueEmpty() {
-        return subscriberTemplate.pull(SUBSCRIPTION_ID, 1000, true).isEmpty();
+        return subscriberTemplate.pullAndAck(SUBSCRIPTION_ID, 1000, true).isEmpty();
     }
 }
