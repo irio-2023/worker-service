@@ -28,6 +28,7 @@ import static pl.mimuw.worker.utils.TimeUtils.currentTimeSecsPlus;
 public class WorkerService {
 
     private static final Long NO_INITIAL_DELAY = 0L;
+    private static final Boolean MAY_INTERRUPT_IF_RUNNING = false;
 
     private final WorkerConfiguration workerConfiguration;
     private final ScheduledExecutorService scheduledExecutorService;
@@ -75,24 +76,33 @@ public class WorkerService {
     }
 
     private void processMessage(final String ackId, final MonitorTaskMessage monitorTask) {
+        if (currentTimeSecs() > monitorTask.getTaskDeadlineTimestampSecs()) {
+            stopMessageProcessing(ackId);
+            return;
+        }
+
         log.info("Pinging service: {}, time: {}", monitorTask.getServiceUrl(), currentDate());
         monitorService.pingHostAndSaveResult(monitorTask.getJobId().toString(), monitorTask.getServiceUrl().toString());
 
         if (currentTimeSecsPlus(monitorTask.getPollFrequencySecs()) > monitorTask.getTaskDeadlineTimestampSecs()) {
-            log.info("Task deadline exceeded, finishing processing message: {}", ackId);
-            messageAcks.remove(ackId).ack();
-            messageFutures.remove(ackId).cancel(false);
+            stopMessageProcessing(ackId);
         }
     }
 
     private long getInitialDelayForJob(final String jobId, final long pollFrequencySecs) {
         return monitorService.getLatestMonitorResultByJobId(UUID.fromString(jobId))
-                .map(result -> calculateDelay(result.getTimestamp().toInstant().getEpochSecond(), pollFrequencySecs))
+                .map(result -> calculateDelay(result.getTimestamp().getTime() / 1000L, pollFrequencySecs))
                 .orElse(NO_INITIAL_DELAY);
     }
 
     private long calculateDelay(final long lastPingTimestamp, final long pollFrequencySecs) {
         final var delay = lastPingTimestamp + pollFrequencySecs - currentTimeSecs();
         return delay > 0 ? delay : NO_INITIAL_DELAY;
+    }
+
+    private void stopMessageProcessing(final String ackId) {
+        log.info("Task deadline exceeded, finishing processing message: {}", ackId);
+        messageAcks.remove(ackId).ack();
+        messageFutures.remove(ackId).cancel(MAY_INTERRUPT_IF_RUNNING);
     }
 }

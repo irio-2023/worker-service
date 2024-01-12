@@ -21,9 +21,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.mimuw.evt.schemas.MonitorTaskMessage;
 import pl.mimuw.worker.AbstractIT;
+import pl.mimuw.worker.entity.MonitorResult;
 import pl.mimuw.worker.entity.MonitorResultEntity;
 import pl.mimuw.worker.repository.MonitorResultRepository;
 
+import java.util.Date;
 import java.util.UUID;
 
 import static org.awaitility.Awaitility.await;
@@ -172,8 +174,58 @@ public class WorkerServiceIT extends AbstractIT {
                 Assertions.assertTrue(isQueueEmpty());
             }
         }
+
         Thread.sleep(workerConfiguration.getAckDeadlineSecs() * 1000);
         Assertions.assertTrue(isQueueEmpty());
+    }
+
+    @Test
+    @SneakyThrows
+    void workerServiceDontProcessExpiredMessagesTest() {
+        // given
+        final var message = createMonitorTaskMessageBuilder()
+                .setTaskDeadlineTimestampSecs(currentTimeSecsPlus(-1))
+                .build();
+        publisherTemplate.publish(TOPIC_ID, message).get();
+
+        // when
+        workerService.pullAndProcessMonitorTaskMessages();
+        Thread.sleep(1000);
+
+        // then
+        Assertions.assertTrue(monitorResultRepository.findAll().isEmpty());
+    }
+
+    @Test
+    @SneakyThrows
+    void workerServiceStartsMessageProcessingWithProperDelayTest() {
+        // given
+        final var mockedResult = new MonitorResultEntity();
+        final var timestamp = new Date();
+        mockedResult.setId(UUID.randomUUID());
+        mockedResult.setJobId(UUID.randomUUID());
+        mockedResult.setResult(MonitorResult.SUCCESS);
+        mockedResult.setTimestamp(timestamp);
+        monitorResultRepository.save(mockedResult);
+
+        final var pollFrequencySecs = 3;
+        final var message = createMonitorTaskMessageBuilder()
+                .setJobId(mockedResult.getJobId().toString())
+                .setPollFrequencySecs(pollFrequencySecs)
+                .setTaskDeadlineTimestampSecs(currentTimeSecsPlus(pollFrequencySecs + 1))
+                .build();
+        publisherTemplate.publish(TOPIC_ID, message).get();
+
+        // when
+        workerService.pullAndProcessMonitorTaskMessages();
+        Thread.sleep((pollFrequencySecs + 1) * 1000);
+
+        // then
+        final var results = monitorResultRepository.findAll();
+        Assertions.assertEquals(2, results.size());
+        // edgy case, we can't be sure that the delay will be exactly 3 seconds,
+        // but it is highly likely in the test environment
+        Assertions.assertEquals(pollFrequencySecs, (results.get(1).getTimestamp().getTime() - timestamp.getTime()) / 1000);
     }
 
     private MonitorTaskMessage.Builder createMonitorTaskMessageBuilder() {
