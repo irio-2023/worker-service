@@ -113,17 +113,18 @@ public class WorkerServiceIT extends AbstractIT {
     @SneakyThrows
     void workerServiceProcessesTaskMessagesTest() {
         // given
-        final var pollTimes = 4;
-        final var pollFrequencySecs = 1;
+        final var pollTimes = 3;
+        final var pollFrequencySecs = 2;
+        final var neededTimeSecs = (pollTimes - 1) * pollFrequencySecs + 1;
         final var message = createMonitorTaskMessageBuilder()
                 .setPollFrequencySecs(pollFrequencySecs)
-                .setTaskDeadlineTimestampSecs(currentTimeSecsPlus((pollTimes - 1) * pollFrequencySecs))
+                .setTaskDeadlineTimestampSecs(currentTimeSecsPlus(neededTimeSecs))
                 .build();
         publisherTemplate.publish(TOPIC_ID, message).get();
 
         // when
         workerService.pullAndProcessMonitorTaskMessages();
-        Thread.sleep(pollTimes * pollFrequencySecs * 1000);
+        Thread.sleep(neededTimeSecs * 1000);
 
         // then
         final var results = monitorResultRepository.findAll();
@@ -204,17 +205,25 @@ public class WorkerServiceIT extends AbstractIT {
     @SneakyThrows
     void workerServiceStartsMessageProcessingWithProperDelayTest() {
         // given
+        final var jobId = UUID.randomUUID();
+
+        final var olderMockedResult = new MonitorResultEntity();
+        olderMockedResult.setId(UUID.randomUUID());
+        olderMockedResult.setJobId(jobId);
+        olderMockedResult.setResult(MonitorResult.SUCCESS);
+        olderMockedResult.setTimestamp(new Date());
+        monitorResultRepository.save(olderMockedResult);
+
         final var mockedResult = new MonitorResultEntity();
-        final var timestamp = new Date();
         mockedResult.setId(UUID.randomUUID());
-        mockedResult.setJobId(UUID.randomUUID());
+        mockedResult.setJobId(jobId);
         mockedResult.setResult(MonitorResult.SUCCESS);
-        mockedResult.setTimestamp(timestamp);
+        mockedResult.setTimestamp(new Date());
         monitorResultRepository.save(mockedResult);
 
         final var pollFrequencySecs = 3;
         final var message = createMonitorTaskMessageBuilder()
-                .setJobId(mockedResult.getJobId().toString())
+                .setJobId(jobId.toString())
                 .setPollFrequencySecs(pollFrequencySecs)
                 .setTaskDeadlineTimestampSecs(currentTimeSecsPlus(pollFrequencySecs + 1))
                 .build();
@@ -225,11 +234,15 @@ public class WorkerServiceIT extends AbstractIT {
         Thread.sleep((pollFrequencySecs + 1) * 1000);
 
         // then
-        final var results = monitorResultRepository.findAll();
-        Assertions.assertEquals(2, results.size());
-        // edgy case, we can't be sure that the delay will be exactly 3 seconds,
+        final var resultOpt = monitorResultRepository.findTopByJobIdOrderByTimestampDesc(jobId);
+        Assertions.assertTrue(resultOpt.isPresent());
+
+        final var result = resultOpt.get();
+        Assertions.assertNotEquals(olderMockedResult.getId(), result.getId());
+        Assertions.assertNotEquals(mockedResult.getId(), result.getId());
+        // not a perfect assertion, we can't be sure that the delay will be exactly 3 seconds,
         // but it is highly likely in the test environment
-        Assertions.assertEquals(pollFrequencySecs, (results.get(1).getTimestamp().getTime() - timestamp.getTime()) / 1000);
+        Assertions.assertEquals(pollFrequencySecs, (result.getTimestamp().getTime() - mockedResult.getTimestamp().getTime()) / 1000);
     }
 
     private MonitorTaskMessage.Builder createMonitorTaskMessageBuilder() {
