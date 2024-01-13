@@ -14,6 +14,7 @@ import com.google.cloud.spring.pubsub.core.subscriber.PubSubSubscriberTemplate;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import lombok.SneakyThrows;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -208,14 +209,14 @@ public class WorkerServiceIT extends AbstractIT {
         final var jobId = UUID.randomUUID();
 
         final var olderMockedResult = new MonitorResultEntity();
-        olderMockedResult.setId(UUID.randomUUID());
+        olderMockedResult.setId(ObjectId.get());
         olderMockedResult.setJobId(jobId);
         olderMockedResult.setResult(MonitorResult.SUCCESS);
         olderMockedResult.setTimestamp(new Date());
         monitorResultRepository.save(olderMockedResult);
 
         final var mockedResult = new MonitorResultEntity();
-        mockedResult.setId(UUID.randomUUID());
+        mockedResult.setId(ObjectId.get());
         mockedResult.setJobId(jobId);
         mockedResult.setResult(MonitorResult.SUCCESS);
         mockedResult.setTimestamp(new Date());
