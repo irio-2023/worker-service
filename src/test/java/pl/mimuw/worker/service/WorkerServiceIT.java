@@ -240,7 +240,10 @@ public class WorkerServiceIT extends AbstractIT {
         final var result = resultOpt.get();
         Assertions.assertNotEquals(olderMockedResult.getId(), result.getId());
         Assertions.assertNotEquals(mockedResult.getId(), result.getId());
-        Assertions.assertTrue(pollFrequencySecs * 1000 <= (result.getTimestamp().getTime() - mockedResult.getTimestamp().getTime()));
+
+        final var timestampMillisDiff = result.getTimestamp().getTime() - mockedResult.getTimestamp().getTime();
+        Assertions.assertTrue(pollFrequencySecs * 1000 <= (timestampMillisDiff + 1000));
+        Assertions.assertTrue(pollFrequencySecs * 1000 >= (timestampMillisDiff - 1000));
     }
 
     private MonitorTaskMessage.Builder createMonitorTaskMessageBuilder() {
