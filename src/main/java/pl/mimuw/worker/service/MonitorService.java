@@ -1,6 +1,7 @@
 package pl.mimuw.worker.service;
 
 import lombok.RequiredArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -28,7 +29,7 @@ public class MonitorService {
     public void pingHostAndSaveResult(final String jobId, final String url) {
         final var result = pingHost(url);
         final var monitorResultEntity = new MonitorResultEntity();
-        monitorResultEntity.setId(UUID.randomUUID());
+        monitorResultEntity.setId(ObjectId.get());
         monitorResultEntity.setJobId(UUID.fromString(jobId));
         monitorResultEntity.setResult(result);
         monitorResultEntity.setTimestamp(new Date());

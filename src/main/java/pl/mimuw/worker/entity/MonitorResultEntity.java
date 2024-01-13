@@ -4,9 +4,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.util.Date;
 import java.util.UUID;
@@ -19,9 +22,10 @@ import java.util.UUID;
 public class MonitorResultEntity {
 
     @Id
-    private UUID id;
+    private ObjectId id;
 
     @Indexed
+    @Field(targetType = FieldType.STRING)
     private UUID jobId;
 
     private Date timestamp;
