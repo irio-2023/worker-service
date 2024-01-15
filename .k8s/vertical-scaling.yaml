@@ -12,6 +12,9 @@ spec:
   resourcePolicy:
     containerPolicies:
       - containerName: worker-service
+        minAllowed:
+          cpu: 250m
+          memory: 256Mi
         maxAllowed:
           cpu: 500m
           memory: 512Mi
