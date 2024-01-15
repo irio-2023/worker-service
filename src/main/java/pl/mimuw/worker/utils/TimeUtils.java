@@ -11,11 +11,11 @@ public class TimeUtils {
         return now.format(formatter);
     }
 
-    public static int currentTimeSecs() {
-        return (int) (System.currentTimeMillis() / 1000);
+    public static long currentTimeSecs() {
+        return System.currentTimeMillis() / 1000L;
     }
 
-    public static int currentTimeSecsPlus(final int secs) {
+    public static long currentTimeSecsPlus(final long secs) {
         return currentTimeSecs() + secs;
     }
 }

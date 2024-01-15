@@ -6,22 +6,26 @@
   "fields": [
     {
       "name": "jobId",
-      "type": "string"
+      "type": "string",
+      "doc": "Unique job identifier."
     },
     {
       "name": "serviceUrl",
       "type": {
         "type": "string",
         "logicalType": "url"
-      }
+      },
+      "doc": "URL of the service to be monitored."
     },
     {
       "name": "pollFrequencySecs",
-      "type": "int"
+      "type": "long",
+      "doc": "Frequency of polling the service in seconds."
     },
     {
       "name": "taskDeadlineTimestampSecs",
-      "type": "int"
+      "type": "long",
+      "doc": "Timestamp of the task deadline in seconds."
     }
   ]
 }
