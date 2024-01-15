@@ -25,5 +25,4 @@ kubectl annotate serviceaccount custom-metrics-stackdriver-adapter \
   "iam.gke.io/gcp-service-account=custom-metrics-sd-adapter@$GCP_PROJECT_ID.iam.gserviceaccount.com" \
   --namespace custom-metrics
 
-kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stackdriver/master/custom-metrics-stackdriver-adapter/deploy/production/adapter_new_resource_model.yaml
 ```
