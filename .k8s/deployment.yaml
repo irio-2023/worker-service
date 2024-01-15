@@ -20,6 +20,7 @@ spec:
       containers:
         - name: worker-service
           image: xvisox/worker-service:latest
+          imagePullPolicy: Always
           livenessProbe:
             httpGet:
               path: /health
