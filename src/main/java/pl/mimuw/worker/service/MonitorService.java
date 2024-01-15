@@ -33,6 +33,7 @@ public class MonitorService {
         monitorResultEntity.setJobId(UUID.fromString(jobId));
         monitorResultEntity.setResult(result);
         monitorResultEntity.setTimestamp(TimeUtils.currentTimeSecs());
+        monitorResultEntity.setExpiresAt(TimeUtils.getExpiresAt());
         monitorResultRepository.save(monitorResultEntity);
     }
 

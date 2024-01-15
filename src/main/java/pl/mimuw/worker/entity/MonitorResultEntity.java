@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Getter
@@ -28,6 +29,9 @@ public class MonitorResultEntity {
     private UUID jobId;
 
     private Long timestamp;
+
+    @Field(targetType = FieldType.DATE_TIME)
+    private Date expiresAt;
 
     private MonitorResult result;
 }
