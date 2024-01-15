@@ -99,7 +99,7 @@ public class WorkerService {
 
     private long getInitialDelayForJob(final String jobId, final long pollFrequencySecs) {
         return monitorService.getLatestMonitorResultByJobId(UUID.fromString(jobId))
-                .map(result -> calculateDelay(result.getTimestamp().getTime() / 1000L, pollFrequencySecs))
+                .map(result -> calculateDelay(result.getTimestamp(), pollFrequencySecs))
                 .orElse(NO_INITIAL_DELAY);
     }
 

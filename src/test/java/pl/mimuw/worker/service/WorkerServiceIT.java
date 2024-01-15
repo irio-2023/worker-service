@@ -26,11 +26,11 @@ import pl.mimuw.worker.entity.MonitorResult;
 import pl.mimuw.worker.entity.MonitorResultEntity;
 import pl.mimuw.worker.repository.MonitorResultRepository;
 
-import java.util.Date;
 import java.util.UUID;
 
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.hasSize;
+import static pl.mimuw.worker.utils.TimeUtils.currentTimeSecs;
 import static pl.mimuw.worker.utils.TimeUtils.currentTimeSecsPlus;
 
 public class WorkerServiceIT extends AbstractIT {
@@ -160,7 +160,7 @@ public class WorkerServiceIT extends AbstractIT {
     @SneakyThrows
     void workerServiceExtendsAckDeadlinesForMessagesTest() {
         // given
-        final var extendTimes = 3;
+        final var extendTimes = 3L;
         final var message = createMonitorTaskMessageBuilder()
                 .setTaskDeadlineTimestampSecs(currentTimeSecsPlus(extendTimes * workerConfiguration.getAckDeadlineSecs()))
                 .build();
@@ -170,7 +170,7 @@ public class WorkerServiceIT extends AbstractIT {
         workerService.pullAndProcessMonitorTaskMessages();
 
         // then
-        for (int j = 0; j < extendTimes; j++) {
+        for (long j = 0; j < extendTimes; j++) {
             workerService.extendAckDeadlinesForMonitorTaskMessages();
             for (int i = 0; i < (workerConfiguration.getAckDeadlineSecs() - 1); i++) {
                 Thread.sleep(1000);
@@ -212,14 +212,14 @@ public class WorkerServiceIT extends AbstractIT {
         olderMockedResult.setId(ObjectId.get());
         olderMockedResult.setJobId(jobId);
         olderMockedResult.setResult(MonitorResult.SUCCESS);
-        olderMockedResult.setTimestamp(new Date());
+        olderMockedResult.setTimestamp(currentTimeSecs());
         monitorResultRepository.save(olderMockedResult);
 
         final var mockedResult = new MonitorResultEntity();
         mockedResult.setId(ObjectId.get());
         mockedResult.setJobId(jobId);
         mockedResult.setResult(MonitorResult.SUCCESS);
-        mockedResult.setTimestamp(new Date());
+        mockedResult.setTimestamp(currentTimeSecs());
         monitorResultRepository.save(mockedResult);
 
         final var pollFrequencySecs = 3;
@@ -242,9 +242,8 @@ public class WorkerServiceIT extends AbstractIT {
         Assertions.assertNotEquals(olderMockedResult.getId(), result.getId());
         Assertions.assertNotEquals(mockedResult.getId(), result.getId());
 
-        final var timestampMillisDiff = result.getTimestamp().getTime() - mockedResult.getTimestamp().getTime();
-        Assertions.assertTrue(pollFrequencySecs * 1000 <= (timestampMillisDiff + 1000));
-        Assertions.assertTrue(pollFrequencySecs * 1000 >= (timestampMillisDiff - 1000));
+        final var timestampSecsDiff = result.getTimestamp() - mockedResult.getTimestamp();
+        Assertions.assertTrue(pollFrequencySecs == timestampSecsDiff || pollFrequencySecs + 1 == timestampSecsDiff);
     }
 
     private MonitorTaskMessage.Builder createMonitorTaskMessageBuilder() {

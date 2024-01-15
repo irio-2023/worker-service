@@ -15,10 +15,10 @@ import org.apache.avro.util.Utf8;
 /** Monitor request message sent to the worker service. */
 @org.apache.avro.specific.AvroGenerated
 public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = -2904228509138487083L;
+  private static final long serialVersionUID = -1077793969428226138L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"MonitorTaskMessage\",\"namespace\":\"pl.mimuw.evt.schemas\",\"doc\":\"Monitor request message sent to the worker service.\",\"fields\":[{\"name\":\"jobId\",\"type\":\"string\"},{\"name\":\"serviceUrl\",\"type\":{\"type\":\"string\",\"logicalType\":\"url\"}},{\"name\":\"pollFrequencySecs\",\"type\":\"int\"},{\"name\":\"taskDeadlineTimestampSecs\",\"type\":\"int\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"MonitorTaskMessage\",\"namespace\":\"pl.mimuw.evt.schemas\",\"doc\":\"Monitor request message sent to the worker service.\",\"fields\":[{\"name\":\"jobId\",\"type\":\"string\"},{\"name\":\"serviceUrl\",\"type\":{\"type\":\"string\",\"logicalType\":\"url\"}},{\"name\":\"pollFrequencySecs\",\"type\":\"long\"},{\"name\":\"taskDeadlineTimestampSecs\",\"type\":\"long\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
@@ -76,8 +76,8 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
 
   private java.lang.CharSequence jobId;
   private java.lang.CharSequence serviceUrl;
-  private int pollFrequencySecs;
-  private int taskDeadlineTimestampSecs;
+  private long pollFrequencySecs;
+  private long taskDeadlineTimestampSecs;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -93,7 +93,7 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
    * @param pollFrequencySecs The new value for pollFrequencySecs
    * @param taskDeadlineTimestampSecs The new value for taskDeadlineTimestampSecs
    */
-  public MonitorTaskMessage(java.lang.CharSequence jobId, java.lang.CharSequence serviceUrl, java.lang.Integer pollFrequencySecs, java.lang.Integer taskDeadlineTimestampSecs) {
+  public MonitorTaskMessage(java.lang.CharSequence jobId, java.lang.CharSequence serviceUrl, java.lang.Long pollFrequencySecs, java.lang.Long taskDeadlineTimestampSecs) {
     this.jobId = jobId;
     this.serviceUrl = serviceUrl;
     this.pollFrequencySecs = pollFrequencySecs;
@@ -126,8 +126,12 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
     switch (field$) {
     case 0: jobId = (java.lang.CharSequence)value$; break;
     case 1: serviceUrl = (java.lang.CharSequence)value$; break;
-    case 2: pollFrequencySecs = (java.lang.Integer)value$; break;
-    case 3: taskDeadlineTimestampSecs = (java.lang.Integer)value$; break;
+      case 2:
+        pollFrequencySecs = (java.lang.Long) value$;
+        break;
+      case 3:
+        taskDeadlineTimestampSecs = (java.lang.Long) value$;
+        break;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
@@ -170,7 +174,7 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
    * Gets the value of the 'pollFrequencySecs' field.
    * @return The value of the 'pollFrequencySecs' field.
    */
-  public int getPollFrequencySecs() {
+  public long getPollFrequencySecs() {
     return pollFrequencySecs;
   }
 
@@ -179,7 +183,7 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
    * Sets the value of the 'pollFrequencySecs' field.
    * @param value the value to set.
    */
-  public void setPollFrequencySecs(int value) {
+  public void setPollFrequencySecs(long value) {
     this.pollFrequencySecs = value;
   }
 
@@ -187,7 +191,7 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
    * Gets the value of the 'taskDeadlineTimestampSecs' field.
    * @return The value of the 'taskDeadlineTimestampSecs' field.
    */
-  public int getTaskDeadlineTimestampSecs() {
+  public long getTaskDeadlineTimestampSecs() {
     return taskDeadlineTimestampSecs;
   }
 
@@ -196,7 +200,7 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
    * Sets the value of the 'taskDeadlineTimestampSecs' field.
    * @param value the value to set.
    */
-  public void setTaskDeadlineTimestampSecs(int value) {
+  public void setTaskDeadlineTimestampSecs(long value) {
     this.taskDeadlineTimestampSecs = value;
   }
 
@@ -243,8 +247,8 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
 
     private java.lang.CharSequence jobId;
     private java.lang.CharSequence serviceUrl;
-    private int pollFrequencySecs;
-    private int taskDeadlineTimestampSecs;
+    private long pollFrequencySecs;
+    private long taskDeadlineTimestampSecs;
 
     /** Creates a new Builder */
     private Builder() {
@@ -383,7 +387,7 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
       * Gets the value of the 'pollFrequencySecs' field.
       * @return The value.
       */
-    public int getPollFrequencySecs() {
+    public long getPollFrequencySecs() {
       return pollFrequencySecs;
     }
 
@@ -393,7 +397,7 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
       * @param value The value of 'pollFrequencySecs'.
       * @return This builder.
       */
-    public pl.mimuw.evt.schemas.MonitorTaskMessage.Builder setPollFrequencySecs(int value) {
+    public pl.mimuw.evt.schemas.MonitorTaskMessage.Builder setPollFrequencySecs(long value) {
       validate(fields()[2], value);
       this.pollFrequencySecs = value;
       fieldSetFlags()[2] = true;
@@ -422,7 +426,7 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
       * Gets the value of the 'taskDeadlineTimestampSecs' field.
       * @return The value.
       */
-    public int getTaskDeadlineTimestampSecs() {
+    public long getTaskDeadlineTimestampSecs() {
       return taskDeadlineTimestampSecs;
     }
 
@@ -432,7 +436,7 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
       * @param value The value of 'taskDeadlineTimestampSecs'.
       * @return This builder.
       */
-    public pl.mimuw.evt.schemas.MonitorTaskMessage.Builder setTaskDeadlineTimestampSecs(int value) {
+    public pl.mimuw.evt.schemas.MonitorTaskMessage.Builder setTaskDeadlineTimestampSecs(long value) {
       validate(fields()[3], value);
       this.taskDeadlineTimestampSecs = value;
       fieldSetFlags()[3] = true;
@@ -464,8 +468,8 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
         MonitorTaskMessage record = new MonitorTaskMessage();
         record.jobId = fieldSetFlags()[0] ? this.jobId : (java.lang.CharSequence) defaultValue(fields()[0]);
         record.serviceUrl = fieldSetFlags()[1] ? this.serviceUrl : (java.lang.CharSequence) defaultValue(fields()[1]);
-        record.pollFrequencySecs = fieldSetFlags()[2] ? this.pollFrequencySecs : (java.lang.Integer) defaultValue(fields()[2]);
-        record.taskDeadlineTimestampSecs = fieldSetFlags()[3] ? this.taskDeadlineTimestampSecs : (java.lang.Integer) defaultValue(fields()[3]);
+        record.pollFrequencySecs = fieldSetFlags()[2] ? this.pollFrequencySecs : (java.lang.Long) defaultValue(fields()[2]);
+        record.taskDeadlineTimestampSecs = fieldSetFlags()[3] ? this.taskDeadlineTimestampSecs : (java.lang.Long) defaultValue(fields()[3]);
         return record;
       } catch (org.apache.avro.AvroMissingFieldException e) {
         throw e;
@@ -502,9 +506,9 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
 
     out.writeString(this.serviceUrl);
 
-    out.writeInt(this.pollFrequencySecs);
+    out.writeLong(this.pollFrequencySecs);
 
-    out.writeInt(this.taskDeadlineTimestampSecs);
+    out.writeLong(this.taskDeadlineTimestampSecs);
 
   }
 
@@ -517,9 +521,9 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
 
       this.serviceUrl = in.readString(this.serviceUrl instanceof Utf8 ? (Utf8)this.serviceUrl : null);
 
-      this.pollFrequencySecs = in.readInt();
+      this.pollFrequencySecs = in.readLong();
 
-      this.taskDeadlineTimestampSecs = in.readInt();
+      this.taskDeadlineTimestampSecs = in.readLong();
 
     } else {
       for (int i = 0; i < 4; i++) {
@@ -533,11 +537,11 @@ public class MonitorTaskMessage extends org.apache.avro.specific.SpecificRecordB
           break;
 
         case 2:
-          this.pollFrequencySecs = in.readInt();
+          this.pollFrequencySecs = in.readLong();
           break;
 
         case 3:
-          this.taskDeadlineTimestampSecs = in.readInt();
+          this.taskDeadlineTimestampSecs = in.readLong();
           break;
 
         default:

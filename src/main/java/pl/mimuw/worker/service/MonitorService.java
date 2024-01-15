@@ -9,10 +9,10 @@ import org.springframework.web.reactive.function.client.WebClientException;
 import pl.mimuw.worker.entity.MonitorResult;
 import pl.mimuw.worker.entity.MonitorResultEntity;
 import pl.mimuw.worker.repository.MonitorResultRepository;
+import pl.mimuw.worker.utils.TimeUtils;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,7 +32,7 @@ public class MonitorService {
         monitorResultEntity.setId(ObjectId.get());
         monitorResultEntity.setJobId(UUID.fromString(jobId));
         monitorResultEntity.setResult(result);
-        monitorResultEntity.setTimestamp(new Date());
+        monitorResultEntity.setTimestamp(TimeUtils.currentTimeSecs());
         monitorResultRepository.save(monitorResultEntity);
     }
 
