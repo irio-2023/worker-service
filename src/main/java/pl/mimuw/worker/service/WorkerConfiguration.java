@@ -21,6 +21,7 @@ public class WorkerConfiguration {
 
     private String projectId;
     private String subscriptionId;
+    private String metricsName;
 
     private Integer maxTasksPerPod;
     private Integer ackDeadlineSecs;

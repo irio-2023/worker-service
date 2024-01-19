@@ -79,6 +79,10 @@
             <version>3.1.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-monitoring</artifactId>
+        </dependency>
         <!-- Testing -->
         <dependency>
             <groupId>io.rest-assured</groupId>
