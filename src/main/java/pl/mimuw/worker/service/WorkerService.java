@@ -1,14 +1,10 @@
 package pl.mimuw.worker.service;
 
-import com.google.cloud.monitoring.v3.MetricServiceClient;
 import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import com.google.cloud.spring.pubsub.support.AcknowledgeablePubsubMessage;
 import com.google.cloud.spring.pubsub.support.converter.ConvertedAcknowledgeablePubsubMessage;
-import com.google.monitoring.v3.CreateTimeSeriesRequest;
-import com.google.monitoring.v3.ProjectName;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,7 +19,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import static pl.mimuw.worker.utils.MetricsUtils.createListOfTimeSeries;
 import static pl.mimuw.worker.utils.TimeUtils.currentDate;
 import static pl.mimuw.worker.utils.TimeUtils.currentTimeSecs;
 import static pl.mimuw.worker.utils.TimeUtils.currentTimeSecsPlus;
@@ -71,26 +66,6 @@ public class WorkerService {
         messageAcks.values().forEach(message ->
                 message.modifyAckDeadline(workerConfiguration.getAckDeadlineSecs())
         );
-    }
-
-    @SneakyThrows
-    @Scheduled(cron = "${worker.metricsCron}")
-    public void sendNumberOfProcessingTasksMetric() {
-        log.info("Sending number of processing tasks, time: {}", currentDate());
-        final var projectName = ProjectName.of(workerConfiguration.getProjectId());
-
-        final var request = CreateTimeSeriesRequest.newBuilder()
-                .setName(projectName.toString())
-                .addAllTimeSeries(createListOfTimeSeries(
-                        workerConfiguration.getProjectId(),
-                        workerConfiguration.getMetricsName(),
-                        messageAcks.size()))
-                .build();
-
-        try (final MetricServiceClient client = MetricServiceClient.create()) {
-            client.createTimeSeries(request);
-            log.info("Successfully sent number of processing tasks");
-        }
     }
 
     @PreDestroy

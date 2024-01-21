@@ -13,8 +13,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 @ConfigurationProperties(prefix = "monitor")
 public class MonitorConfiguration {
 
-    private String projectId;
-    private String metricsName;
     private Integer pingTimeoutSecs;
 
     @Bean
